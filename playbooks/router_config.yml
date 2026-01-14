@@ -11,7 +11,7 @@
         text: |
           ---------------------------------------
           WARNING: Authorized Access Only
-          Managed by Ansible
+          Managed by Ansible & Jenkins
           ---------------------------------------
         state: present
 
