@@ -1,0 +1,10 @@
+ansible_connection: ansible.netcommon.telnet
+ansible_network_os: cisco.ios.ios
+
+ansible_user: ansible
+ansible_password: cisco123
+
+#ansible_port: 23
+#ansible_network_cli_ssh_type: telnet
+
+#ansible_command_timeout: 60

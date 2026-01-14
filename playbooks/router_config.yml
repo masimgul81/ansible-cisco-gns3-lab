@@ -1,0 +1,31 @@
+---
+- name: Configure Cisco Routers
+  hosts: cisco
+  connection: network_cli
+  gather_facts: no
+
+  tasks:
+    - name: Configure MOTD Banner
+      cisco.ios.ios_banner:
+        banner: motd
+        text: |
+          ---------------------------------------
+          WARNING: Authorized Access Only
+          Managed by Ansible
+          ---------------------------------------
+        state: present
+
+    - name: Configure Loopback 100 (The Universal Way)
+      cisco.ios.ios_config:
+        lines:
+          - description Configured by Ansible
+          - ip address 192.168.100.1 255.255.255.255
+          - no shutdown
+        parents: interface Loopback100
+      # 'parents' enters the interface mode
+      # 'lines' executes the commands inside that mode
+
+    - name: Save Configuration
+      cisco.ios.ios_config:
+        save_when: modified
+
