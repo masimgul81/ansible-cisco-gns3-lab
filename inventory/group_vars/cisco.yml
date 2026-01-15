@@ -1,17 +1,33 @@
-ansible_user: ansible
-ansible_password: cisco123
-ansible_connection: network_cli
-ansible_network_os: cisco.ios.ios
+#ansible_user: ansible
+#ansible_password: cisco123
+#ansible_connection: network_cli
+#ansible_network_os: cisco.ios.ios
 
-# Increase timeout to 1 minute (default is 30s)
-ansible_command_timeout: 60
+## Increase timeout to 1 minute (default is 30s)
+#ansible_command_timeout: 60
 
         # -----------------------------------------------------------
         # MAGIC FIX FOR OLD CISCO ROUTERS (SHA1 + DH GROUP 1)
         # -----------------------------------------------------------
+#ansible_ssh_common_args: >
+#  -o KexAlgorithms=+diffie-hellman-group1-sha1
+#  -o HostKeyAlgorithms=+ssh-rsa
+#  -o Ciphers=+3des-cbc,aes128-cbc,aes192-cbc,aes256-cbc
+#  -o PubkeyAcceptedKeyTypes=+ssh-rsa
+#  -o StrictHostKeyChecking=no
+
+
+
+
+
+
+ansible_connection: network_cli
+ansible_network_os: cisco.ios.ios
+ansible_become: yes
+ansible_become_method: enable
 ansible_ssh_common_args: >
-  -o KexAlgorithms=+diffie-hellman-group1-sha1
+  -o KexAlgorithms=+diffie-hellman-group1-sha1,diffie-hellman-group14-sha1
   -o HostKeyAlgorithms=+ssh-rsa
-  -o Ciphers=+3des-cbc,aes128-cbc,aes192-cbc,aes256-cbc
-  -o PubkeyAcceptedKeyTypes=+ssh-rsa
+  -o PubkeyAcceptedAlgorithms=+ssh-rsa
+  -o Ciphers=+aes128-cbc,aes192-cbc,aes256-cbc,3des-cbc
   -o StrictHostKeyChecking=no
