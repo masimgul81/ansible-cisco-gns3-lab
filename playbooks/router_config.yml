@@ -11,7 +11,7 @@
         text: |
           ---------------------------------------
           WARNING: Authorized Access Only
-          Managed by Ansible & Jenkins wiht GitHub
+          Managed by Ansible & Jenkins with GitHub trigger 
           ---------------------------------------
         state: present
 
