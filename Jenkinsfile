@@ -58,8 +58,8 @@ pipeline {
                     ansible-playbook \
                       -i inventory/hosts.yml \
                       playbooks/router_config.yml \
-                      -e ansible_user=$ANSIBLE_USER \
-                      -e ansible_password=$ANSIBLE_PASS \
+                      -e ansible_user="$ANSIBLE_USER" \
+                      -e ansible_password="$ANSIBLE_PASS" \
                       -vvv
                     '''
                     // -vvv gives verbose output so you can see exactly why SSH fails if it does
