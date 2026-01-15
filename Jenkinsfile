@@ -2,14 +2,11 @@ pipeline {
     agent any
 
     environment {
-        // 1. FORCE ANSIBLE TO READ YOUR CONFIG
-        // This ensures the "Magic Fix" SSH args are actually used
+        // Force Ansible to use local config
         ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
-        
-        // 2. Disable Host Key Checking (Safety net)
+        // Disable Host Key Checking (Safety net)
         ANSIBLE_HOST_KEY_CHECKING = 'False'
-        
-        // 3. Make output pretty in Jenkins Console
+        // Make output pretty
         ANSIBLE_FORCE_COLOR = 'true'
     }
 
@@ -17,19 +14,6 @@ pipeline {
         stage('Checkout SCM') {
             steps {
                 checkout scm
-            }
-        }
-
-        stage('Environment Check') {
-            steps {
-                // Debugging: Verify we are the jenkins user and have the collection
-                sh '''
-                whoami
-                pwd
-                ls -la
-                echo "Using Config: $ANSIBLE_CONFIG"
-                ansible-galaxy collection list cisco.ios || echo "WARNING: Collection might be missing"
-                '''
             }
         }
 
@@ -44,45 +28,27 @@ pipeline {
             }
         }
 
-
-	stage('Deploy Configuration') {
+        stage('Deploy Configuration') {
             steps {
-                echo 'Deploying using FILE credentials (Debug Mode)...'
-                // We removed the -e flags. 
-                // Jenkins will now use the user/pass defined in group_vars/cisco.yml
-                sh '''
-                ansible-playbook \
-                  -i inventory/hosts.yml \
-                  playbooks/router_config.yml \
-                  -vvv
-                '''
+                echo 'Deploying to Cisco Routers...'
+                
+                withCredentials([usernamePassword(
+                    credentialsId: 'cisco-ssh', 
+                    usernameVariable: 'ANSIBLE_USER', 
+                    passwordVariable: 'ANSIBLE_PASS'
+                )]) {
+                    // SECURE MODE: We inject the password from Jenkins
+                    // Quoting "$ANSIBLE_PASS" handles special chars safely
+                    sh '''
+                    ansible-playbook \
+                      -i inventory/hosts.yml \
+                      playbooks/router_config.yml \
+                      -e ansible_user="$ANSIBLE_USER" \
+                      -e ansible_password="$ANSIBLE_PASS" \
+                      -vvv
+                    '''
+                }
             }
         }
-
-
-
-
-//        stage('Deploy Configuration') {
-//            steps {
-//                echo 'Deploying to Cisco Routers...'
-//                
-//                withCredentials([usernamePassword(
-//                    credentialsId: 'cisco-ssh', 
-//                    usernameVariable: 'ANSIBLE_USER', 
-//                    passwordVariable: 'ANSIBLE_PASS'
-//                )]) {
-//                    // We use the variables passed by Jenkins credential manager
-//                    sh '''
-//                   ansible-playbook \
-//                      -i inventory/hosts.yml \
-//                      playbooks/router_config.yml \
-//                      -e ansible_user="$ANSIBLE_USER" \
-//                      -e ansible_password="$ANSIBLE_PASS" \
-//                      -vvv
-//                    '''
-//                    // -vvv gives verbose output so you can see exactly why SSH fails if it does
-//                }
-//            }
-//        }
     }
 }
