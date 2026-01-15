@@ -44,27 +44,45 @@ pipeline {
             }
         }
 
-        stage('Deploy Configuration') {
+
+	stage('Deploy Configuration') {
             steps {
-                echo 'Deploying to Cisco Routers...'
-                
-                withCredentials([usernamePassword(
-                    credentialsId: 'cisco-ssh', 
-                    usernameVariable: 'ANSIBLE_USER', 
-                    passwordVariable: 'ANSIBLE_PASS'
-                )]) {
-                    // We use the variables passed by Jenkins credential manager
-                    sh '''
-                    ansible-playbook \
-                      -i inventory/hosts.yml \
-                      playbooks/router_config.yml \
-                      -e ansible_user="$ANSIBLE_USER" \
-                      -e ansible_password="$ANSIBLE_PASS" \
-                      -vvv
-                    '''
-                    // -vvv gives verbose output so you can see exactly why SSH fails if it does
-                }
+                echo 'Deploying using FILE credentials (Debug Mode)...'
+                // We removed the -e flags. 
+                // Jenkins will now use the user/pass defined in group_vars/cisco.yml
+                sh '''
+                ansible-playbook \
+                  -i inventory/hosts.yml \
+                  playbooks/router_config.yml \
+                  -vvv
+                '''
             }
         }
+
+
+
+
+//        stage('Deploy Configuration') {
+//            steps {
+//                echo 'Deploying to Cisco Routers...'
+//                
+//                withCredentials([usernamePassword(
+//                    credentialsId: 'cisco-ssh', 
+//                    usernameVariable: 'ANSIBLE_USER', 
+//                    passwordVariable: 'ANSIBLE_PASS'
+//                )]) {
+//                    // We use the variables passed by Jenkins credential manager
+//                    sh '''
+//                   ansible-playbook \
+//                      -i inventory/hosts.yml \
+//                      playbooks/router_config.yml \
+//                      -e ansible_user="$ANSIBLE_USER" \
+//                      -e ansible_password="$ANSIBLE_PASS" \
+//                      -vvv
+//                    '''
+//                    // -vvv gives verbose output so you can see exactly why SSH fails if it does
+//                }
+//            }
+//        }
     }
 }
