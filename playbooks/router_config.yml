@@ -31,6 +31,12 @@
           - ip address 192.168.200.1 255.255.255.255
           - no shutdown
         parents: interface Loopback200
+    
+    - name: Adding a Static Route (The Universal Way)
+      cisco.ios.ios_config:
+        lines:
+          - ip route 192.168.150.0 255.255.255.0 null0
+          - ip route 172.16.10.0 255.255.255.0 null0
       # 'parents' enters the interface mode
       # 'lines' executes the commands inside that mode
 
