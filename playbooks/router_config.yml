@@ -11,7 +11,8 @@
         text: |
           ---------------------------------------
           WARNING: Authorized Access Only
-          Managed by Ansible & Jenkins with GitHub trigger 
+          Managed by Ansible & Jenkins with GitHub
+          Automation with Webhook + ngrock
           ---------------------------------------
         state: present
 
@@ -22,6 +23,14 @@
           - ip address 192.168.100.1 255.255.255.255
           - no shutdown
         parents: interface Loopback100
+        
+    - name: Configure Loopback 200 (The Universal Way)
+      cisco.ios.ios_config:
+        lines:
+          - description Configured by Ansible + gitpull
+          - ip address 192.168.200.1 255.255.255.255
+          - no shutdown
+        parents: interface Loopback200
       # 'parents' enters the interface mode
       # 'lines' executes the commands inside that mode
 
