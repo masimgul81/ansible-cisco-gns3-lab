@@ -33,7 +33,7 @@
         parents: interface Loopback200
 
      - name: Configure Loopback 300 (The Universal Way)
-      cisco.ios.ios_config:
+       cisco.ios.ios_config:
         lines:
           - description Configured by Ansible + gitpull + jenkins
           - ip address 192.168.30.1 255.255.255.255
