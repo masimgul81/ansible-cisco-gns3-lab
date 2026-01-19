@@ -7,7 +7,7 @@ pipeline {
         // Disable Host Key Checking (Safety net)
         ANSIBLE_HOST_KEY_CHECKING = 'False'
         // Make output pretty
-        ANSIBLE_FORCE_COLOR = 'true'
+        // ANSIBLE_FORCE_COLOR = 'true'
     }
 
     stages {
