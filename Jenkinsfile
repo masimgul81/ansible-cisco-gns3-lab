@@ -6,8 +6,8 @@ pipeline {
         ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
         // Disable Host Key Checking (Safety net)
         ANSIBLE_HOST_KEY_CHECKING = 'False'
-        // Make output pretty
-        // ANSIBLE_FORCE_COLOR = 'true'
+        // Make output pretty (Enabled this for better Jenkins logs)
+        // ANSIBLE_FORCE_COLOR = 'true' 
     }
 
     stages {
@@ -19,40 +19,47 @@ pipeline {
 
         stage('Syntax Check') {
             steps {
-		// Good practice: Check for YAML errors before running
                 withCredentials([file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_PASS_FILE')]) {
-		   sh '''
-		   ansible-playbook \
-                     -i inventory/hosts.yml \
-                     playbooks/router_config.yml \
-                     --syntax-check --vault-password-file $VAULT_PASS_FILE
-                   '''
-		 }
+                    sh '''
+                        echo "Running Syntax Check..."
+                        ansible-playbook -i inventory/hosts.yml \
+                        playbooks/router_config.yml \
+                        --syntax-check \
+                        --vault-password-file $VAULT_PASS_FILE
+                    '''
+                }
             }
         }
 
         stage('Deploy Configuration') {
             steps {
                 echo 'Deploying to Cisco Routers...'
-                withCredentials([file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_PASS_FILE')])
-                withCredentials([usernamePassword(
-                    credentialsId: 'cisco-ssh', 
-                    usernameVariable: 'ANSIBLE_USER', 
-                    passwordVariable: 'ANSIBLE_PASS'
-                )]) {
-                    // SECURE MODE: We inject the password from Jenkins
-                    // Quoting "$ANSIBLE_PASS" handles special chars safely
+                
+                // FIX: Combined both File and Username/Password into ONE list
+                withCredentials([
+                    file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_PASS_FILE'),
+                    usernamePassword(credentialsId: 'cisco-ssh', usernameVariable: 'NET_USER', passwordVariable: 'NET_PASS')
+                ]) {
+                    // Using shell environment variables (safer than Groovy interpolation)
                     sh '''
-                    ansible-playbook \
-                      -i inventory/hosts.yml \
-                      playbooks/router_config.yml \
-                      -e ansible_user="$ANSIBLE_USER" \
-                      -e ansible_password="$ANSIBLE_PASS" \
-		      --vault-password-file $VAULT_PASS_FILE
-                      -vvv
+                        echo "Starting Playbook..."
+                        
+                        ansible-playbook -i inventory/hosts.yml \
+                        playbooks/router_config.yml \
+                        -e ansible_user="$NET_USER" \
+                        -e ansible_password="$NET_PASS" \
+                        --vault-password-file $VAULT_PASS_FILE \
+                        -vvv
                     '''
                 }
             }
         }
     }
+    
+    post {
+        always {
+            cleanWs()
+        }
+    }
 }
+
