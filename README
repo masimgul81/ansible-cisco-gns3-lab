@@ -1,0 +1,33 @@
+Managing Cisco infrastructure with Ansible requires understanding that different Cisco platforms (IOS, Nexus, ASA, etc.) use different Collections, Connection Methods, and Python Libraries.Here is a structured breakdown of the modules, connectivity, and requirements for each platform you listed.1. High-Level Connectivity OverviewUnlike managing Linux servers (which uses SSH+Python on the target), network devices are agentless and often don't have a Python interpreter you can use.network_cli: Ansible logs into the device via SSH and "types" commands like a human operator. (Best for IOS, ASA, Nexus).httpapi: Ansible sends structured JSON/XML data to the device's REST API. (Best for Nexus, Firepower, ISE).2. Platform-Specific BreakdownA. Cisco Routers & Switches (IOS / IOS-XE)This is the most common category (Catalyst switches, ISR/ASR routers).Collection Name: cisco.iosConnection Method: network_cli (SSH)Key Modules:cisco.ios.ios_command: Run show commands (e.g., show ip int br).cisco.ios.ios_config: Push configuration changes (global config mode).cisco.ios.ios_l2_interfaces: Configure Layer 2 ports (Access/Trunk).Requirement: SSH must be enabled on the device.B. Cisco Nexus Switches (NX-OS)Data center switches (Nexus 9k, 7k, 5k).Collection Name: cisco.nxosConnection Method:httpapi (Recommended): Uses NX-API for faster, structured data return. Requires enabling feature nxapi on the switch.network_cli: Standard SSH CLI interaction.Key Modules:cisco.nxos.nxos_vlans: Manage VLANs.cisco.nxos.nxos_vrf: Manage VRFs.cisco.nxos.nxos_vxlan_vtep: VXLAN configuration.C. Cisco ASA FirewallLegacy firewall management.Collection Name: cisco.asaConnection Method: network_cli (SSH) or httpapi (if REST API is enabled on ASA).Key Modules:cisco.asa.asa_acl: Manage Access Control Lists.cisco.asa.asa_og: Manage Object Groups.cisco.asa.asa_config: Push generic CLI configs.Note: ASA automation is often limited compared to IOS; complex policies are easier to manage via asa_config blocks.D. Cisco Firepower (FTD & FMC)There are two ways to automate Firepower. Most enterprises use FMC (Firepower Management Center) to manage the FTD devices.Collection Name: cisco.fmcansible (for FMC)Connection Method: httpapi (REST API). Ansible talks to the FMC console, not the firewall directly.Key Modules:cisco.fmcansible.fmc_configuration: The "Swiss Army Knife" module used for almost all CRUD operations (Create/Read/Update/Delete) on objects, policies, and devices.Requirement: You must enable REST API in FMC settings.E. Cisco ISE (Identity Services Engine)Collection Name: cisco.iseConnection Method: local (The module runs locally on your machine and sends API calls to ISE).Key Modules:cisco.ise.network_device: Add/Remove Network Access Devices (NADs).cisco.ise.endpoint_group: Manage endpoint identity groups.Requirement: Requires the Python library ciscoisesdk.3. Summary Configuration TablePlatformAnsible CollectionConnection TypePortPython DependenciesIOS / IOS-XEcisco.iosnetwork_cli22paramiko or libsshNexus (NX-OS)cisco.nxoshttpapi (or network_cli)80/443requestsASAcisco.asanetwork_cli22paramikoFirepower (FMC)cisco.fmcansiblehttpapi443requestsISEcisco.iselocal*443ciscoisesdk*ISE modules technically run on the control node (localhost) and make API calls out to ISE, so ansible_connection is usually set to local.4. Example Inventory & PlaybookTo make this work, you need to define your inventory variables correctly.inventory.iniIni, TOML[ios_switches]
+switch01 ansible_host=192.168.1.10
+
+[ios_switches:vars]
+ansible_network_os=cisco.ios.ios
+ansible_connection=network_cli
+ansible_user=admin
+ansible_password=secret
+
+[fmc_server]
+fmc01 ansible_host=192.168.1.50
+
+[fmc_server:vars]
+ansible_network_os=cisco.fmcansible.fmc
+ansible_connection=httpapi
+ansible_httpapi_use_ssl=yes
+ansible_httpapi_validate_certs=no
+ansible_user=apiadmin
+ansible_password=secret
+playbook.yml (Example for IOS)YAML---
+- name: Configure IOS Switch
+  hosts: ios_switches
+  gather_facts: no
+  tasks:
+    - name: Create a VLAN
+      cisco.ios.ios_vlan:
+        vlan_id: 10
+        name: DATA_VLAN
+        state: present
+
+    - name: Save Configuration
+      cisco.ios.ios_config:
+        save_when: modified
