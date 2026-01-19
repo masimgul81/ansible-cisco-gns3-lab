@@ -49,7 +49,7 @@ pipeline {
                         -e ansible_user="$NET_USER" \
                         -e ansible_password="$NET_PASS" \
                         --vault-password-file $VAULT_PASS_FILE \
-                        -vvv
+                        -v
                     '''
                 }
             }
