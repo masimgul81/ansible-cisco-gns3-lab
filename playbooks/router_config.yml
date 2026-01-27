@@ -46,7 +46,7 @@
           - ip route 192.168.150.0 255.255.255.0 null0
           - ip route 172.16.10.0 255.255.255.0 null0
           - ip route 172.16.11.0 255.255.255.0 null0
-          - ip route 172.16.12.0 255.255.255.o null0
+          - ip route 172.16.12.0 255.255.255.0 null0
       # 'parents' enters the interface mode
       # 'lines' executes the commands inside that mode
 
