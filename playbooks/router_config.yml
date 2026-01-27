@@ -10,13 +10,13 @@
         banner: motd
         text: |
           ---------------------------------------
-          WARNING: Authorized Access Only for Engineers
+          WARNING: Authorized Access Only for G3nIu5
           Managed by Ansible & Jenkins with GitHub
-          Automation with Webhook + ngrock , GNS3
+          Automation with Webhook + ngrock & GNS3
           ---------------------------------------
         state: present
 
-    - name: Configure Loopback 100 (The Universal Way)
+    - name: Configure Loopback 100 
       cisco.ios.ios_config:
         lines:
           - description Configured by Ansible
@@ -24,7 +24,7 @@
           - no shutdown
         parents: interface Loopback100
         
-    - name: Configure Loopback 200 (The Universal Way)
+    - name: Configure Loopback 200 
       cisco.ios.ios_config:
         lines:
           - description Configured by Ansible + gitpull
@@ -32,7 +32,7 @@
           - no shutdown
         parents: interface Loopback200
 
-    - name: Configure Loopback 300 (The Universal Way)
+    - name: Configure Loopback 300
       cisco.ios.ios_config:
         lines:
           - description Configured by Ansible + gitpull + jenkins
@@ -40,12 +40,13 @@
           - no shutdown
         parents: interface Loopback300
     
-    - name: Adding a Static Route (The Universal Way)
+    - name: Adding a Static Route
       cisco.ios.ios_config:
         lines:
           - ip route 192.168.150.0 255.255.255.0 null0
           - ip route 172.16.10.0 255.255.255.0 null0
           - ip route 172.16.11.0 255.255.255.0 null0
+          - ip route 172.16.12.0 255.255.255.o null0
       # 'parents' enters the interface mode
       # 'lines' executes the commands inside that mode
 
