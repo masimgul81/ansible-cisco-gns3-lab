@@ -2,28 +2,9 @@
 - name: Backup Cisco Router Config
   hosts: cisco
   connection: network_cli
-  gather_facts: no  # We keep this NO for speed
+  gather_facts: no
 
   vars:
-    # FIX: Get date from the Jenkins server directly using 'pipe' lookup
-    current_date: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
-
-  tasks:
-    - name: Create backup directory
-      file:
-        path: "{{ playbook_dir }}/../backups"
-        state: directory
-        mode: '0755'
-
-    - name: Backup running config
-[200~---
-- name: Backup Cisco Router Config
-  hosts: cisco
-  connection: network_cli
-  gather_facts: no  # We keep this NO for speed
-
-  vars:
-    # FIX: Get date from the Jenkins server directly using 'pipe' lookup
     current_date: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
 
   tasks:
@@ -38,11 +19,9 @@
         backup: yes
         backup_options:
           dir_path: "{{ playbook_dir }}/../backups"
-          # FIX: Use the 'current_date' variable defined above
           filename: "backup_{{ inventory_hostname }}_{{ current_date }}.cfg"
       register: backup_output
 
     - name: Display backup location
       debug:
         msg: "Backup Saved to {{ backup_output.backup_path }}"
-
