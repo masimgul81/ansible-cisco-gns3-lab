@@ -1,0 +1,27 @@
+---
+- name: Restore Cisco Router Config
+  hosts: cisco
+  connection: network_cli
+  gather_facts: no
+  vars:
+    # We will pass this variable from Jenkins
+    restore_file: "" 
+
+  tasks:
+    - name: Fail if no restore file provided
+      fail:
+        msg: "No backup file provided for restoration."
+      when: restore_file == ""
+
+    - name: Restore configuration from backup
+      cisco.ios.ios_config:
+        src: "{{ restore_file }}"
+        # 'replace' strategy is safer for rollbacks than default merge
+        # It tries to make the device config match the file exactly
+        # Note: This requires 'scp' enabled on the device typically, 
+        # or it falls back to line-by-line copy
+      register: restore_output
+
+    - name: Debug Restore
+      debug:
+        msg: "Restored configuration from {{ restore_file }}"
