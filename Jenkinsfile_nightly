@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+
+    // Run every night at midnight (00:00)
+    triggers {
+        cron('0 0 * * *')
+    }
+
+    environment {
+        ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
+        ANSIBLE_HOST_KEY_CHECKING = 'False'
+    }
+
+    stages {
+        stage('Checkout SCM') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Execute Backup') {
+            steps {
+                withCredentials([
+                    file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_PASS_FILE'),
+                    usernamePassword(credentialsId: 'cisco-ssh', usernameVariable: 'NET_USER', passwordVariable: 'NET_PASS')
+                ]) {
+                    sh '''
+                        ansible-playbook -i inventory/hosts.yml \
+                        playbooks/router_backup.yml \
+                        -e ansible_user="$NET_USER" \
+                        -e ansible_password="$NET_PASS" \
+                        --vault-password-file $VAULT_PASS_FILE
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Keep the backups for 30 days (optional setting in Jenkins)
+            // Save the .cfg files so you can download them from the Jenkins UI
+            archiveArtifacts artifacts: 'backups/*.cfg', allowEmptyArchive: true
+            cleanWs()
+        }
+    }
+}
