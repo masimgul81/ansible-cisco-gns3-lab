@@ -13,7 +13,7 @@
           WARNING: Authorized Access Only for G3nIu5
           Managed by Ansible & Jenkins with GitHub
           Automation with Webhook + ngrock & GNS3 + Cisco
-          Tested by 19th Feb 2026
+          Tested by 19th Feb 2026 ver2
           ---------------------------------------
         state: present
 
@@ -49,6 +49,7 @@
           - ip route 172.16.10.0 255.255.255.0 null0
           - ip route 172.16.11.0 255.255.255.0 null0
           - ip route 172.16.12.0 255.255.255.0 null0
+          - ip route 172.16.13.0 255.255.255.0 null0
       # 'parents' enters the interface mode
       # 'lines' executes the commands inside that mode
 
