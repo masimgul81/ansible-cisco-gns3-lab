@@ -1,0 +1,151 @@
+Building configuration...
+
+Current configuration : 2394 bytes
+!
+! Last configuration change at 06:00:08 UTC Tue Mar 3 2026
+upgrade fpd auto
+version 15.3
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R1
+!
+boot-start-marker
+boot-end-marker
+!
+aqm-register-fnf
+!
+!
+no aaa new-model
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+no ip domain lookup
+ip domain name lab.local
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+username ansible privilege 15 secret 5 $1$baJO$Fsvi7SjS.pUkwnqL2fyny0
+!
+redundancy
+!
+!
+ip tcp synwait-time 5
+ip ssh version 2
+ip ssh pubkey-chain
+  username ansible
+   key-hash ssh-rsa FA6A840FDA5C0B4E3010D43582040DB6 
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback100
+ description Configured by Ansible
+ ip address 192.168.100.1 255.255.255.255
+!
+interface Loopback200
+ description Configured by Ansible + gitpull
+ ip address 192.168.200.1 255.255.255.255
+!
+interface Loopback300
+ description Configured by Ansible + gitpull + jenkins
+ ip address 192.168.30.1 255.255.255.255
+!
+interface FastEthernet0/0
+ ip address 192.168.11.120 255.255.255.0
+ duplex full
+!
+interface FastEthernet1/0
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+interface FastEthernet1/1
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+interface FastEthernet2/0
+ no ip address
+ shutdown
+ duplex half
+!
+ip forward-protocol nd
+no ip http server
+no ip http secure-server
+!
+!
+ip route 172.16.10.0 255.255.255.0 Null0
+ip route 172.16.11.0 255.255.255.0 Null0
+ip route 172.16.12.0 255.255.255.0 Null0
+ip route 172.16.13.0 255.255.255.0 Null0
+ip route 192.168.150.0 255.255.255.0 Null0
+ip route 192.168.250.0 255.255.255.0 Null0
+!
+no cdp log mismatch duplex
+!
+!
+!
+control-plane
+!
+!
+mgcp behavior rsip-range tgcp-only
+mgcp behavior comedia-role none
+mgcp behavior comedia-check-media-src disable
+mgcp behavior comedia-sdp-force disable
+!
+mgcp profile default
+!
+!
+!
+gatekeeper
+ shutdown
+!
+banner motd ^C
+---------------------------------------
+WARNING: Authorized Access Only for G3nIu5
+Managed by Ansible & Jenkins with GitHub
+Automation with Webhook + ngrock & GNS3 + Cisco
+Tested by 19th Feb 2026 ver2
+---------------------------------------
+^C
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login local
+ transport input telnet ssh
+!
+!
+end
