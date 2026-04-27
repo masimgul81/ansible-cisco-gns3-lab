@@ -1,0 +1,79 @@
+---
+- name: Verify FortiGate Connectivity
+  hosts: fortigates
+  gather_facts: true
+  collections:
+    - fortinet.fortios
+
+  tasks:
+    - name: Get System Status
+      fortios_configuration_fact:
+        # Pass the token directly here
+        access_token: "Nnmsbrwykx8gpwwk0Hs1km95ttG7Q4"
+        vdom: "root"
+        selector: "system_status"
+      register: fw_status
+
+    - name: Display Firmware Version
+      debug:
+        msg:
+          - "Connection Successful!"
+          - "Serial Number: {{ fw_status.meta.serial }}"
+          - "Version: {{ fw_status.meta.version }}"
+
+    - name: Create Address Objects
+      fortios_firewall_address:
+        access_token: "Nnmsbrwykx8gpwwk0Hs1km95ttG7Q4"
+        vdom: "root"
+        state: "present"
+        firewall_address:
+          name: "{{ item.name }}"
+          subnet: "{{ item.ip }} {{ item.mask }}"
+      loop:
+        - { name: "Server_Farm", ip: "10.10.10.0", mask: "255.255.255.0" }
+        - { name: "Management_PC", ip: "192.168.11.50", mask: "255.255.255.255" }
+
+    - name: Create LAN to WAN Policy
+      fortios_firewall_policy:
+        access_token: "Nnmsbrwykx8gpwwk0Hs1km95ttG7Q4"
+        vdom: "root"
+        state: "present"
+        firewall_policy:
+          policyid: 1
+          name: "Allow_Internet"
+          srcintf: [{ "name": "port2" }]
+          dstintf: [{ "name": "port1" }]
+          srcaddr: [{ "name": "Server_Farm" }]
+          dstaddr: [{ "name": "all" }]
+          action: "accept"
+          schedule: "always"
+          service: [{ "name": "ALL" }]
+          nat: "enable"
+
+    - name: Ensure backup directory exists
+      file:
+        path: "/home/ubuntu/ansible_cisco_lab/backups"
+        state: directory
+      delegate_to: localhost
+
+    - name: Backup FortiGate Config
+      fortios_monitor_fact:
+        access_token: "Nnmsbrwykx8gpwwk0Hs1km95ttG7Q4"
+        vdom: "root"
+        selector: "system_config_backup"
+        params:
+          scope: "global"
+      register: backup_data
+
+    - name: Get local timestamp
+      setup:
+        filter: "ansible_date_time"
+      delegate_to: localhost
+
+    - name: Save Backup to File
+      copy:
+        content: "{{ backup_data.meta.raw }}"
+        dest: "/home/ubuntu/ansible_cisco_lab//backups/{{ inventory_hostname }}_{{ ansible_date_time.date }}.conf"
+      delegate_to: localhost
+
+

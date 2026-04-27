@@ -1,0 +1,22 @@
+---
+- name: Verify FortiGate Connectivity
+  hosts: fortigates
+  gather_facts: false
+  collections:
+    - fortinet.fortios
+
+  tasks:
+    - name: Get System Status
+      fortios_configuration_fact:
+        # Pass the token directly here
+        access_token: "Nnmsbrwykx8gpwwk0Hs1km95ttG7Q4"
+        vdom: "root"
+        selector: "system_status"
+      register: fw_status
+
+    - name: Display Firmware Version
+      debug:
+        msg:
+          - "Connection Successful!"
+          - "Serial Number: {{ fw_status.meta.serial }}"
+          - "Version: {{ fw_status.meta.version }}"
