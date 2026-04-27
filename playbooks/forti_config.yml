@@ -1,15 +1,20 @@
 ---
-- name: Verify FortiGate Connectivity
+- name: FortiGate Automation and Backup
   hosts: fortigates
-  gather_facts: true
+  gather_facts: true  # Necessary for ansible_date_time
   collections:
     - fortinet.fortios
 
   tasks:
+    - name: Ensure backup directory exists
+      file:
+        path: "{{ ansible_env.HOME }}/ansible_cisco_lab/backups"
+        state: directory
+      delegate_to: localhost
+
     - name: Get System Status
       fortios_configuration_fact:
-        # Pass the token directly here
-        access_token: "Nnmsbrwykx8gpwwk0Hs1km95ttG7Q4"
+        access_token: "{{ vault_forti_token }}"
         vdom: "root"
         selector: "system_status"
       register: fw_status
@@ -23,7 +28,7 @@
 
     - name: Create Address Objects
       fortios_firewall_address:
-        access_token: "Nnmsbrwykx8gpwwk0Hs1km95ttG7Q4"
+        access_token: "{{ vault_forti_token }}"
         vdom: "root"
         state: "present"
         firewall_address:
@@ -35,7 +40,7 @@
 
     - name: Create LAN to WAN Policy
       fortios_firewall_policy:
-        access_token: "Nnmsbrwykx8gpwwk0Hs1km95ttG7Q4"
+        access_token: "{{ vault_forti_token }}"
         vdom: "root"
         state: "present"
         firewall_policy:
@@ -50,30 +55,18 @@
           service: [{ "name": "ALL" }]
           nat: "enable"
 
-    - name: Ensure backup directory exists
-      file:
-        path: "/home/ubuntu/ansible_cisco_lab/backups"
-        state: directory
-      delegate_to: localhost
-
     - name: Backup FortiGate Config
       fortios_monitor_fact:
-        access_token: "Nnmsbrwykx8gpwwk0Hs1km95ttG7Q4"
+        access_token: "{{ vault_forti_token }}"
         vdom: "root"
         selector: "system_config_backup"
         params:
           scope: "global"
       register: backup_data
 
-    - name: Get local timestamp
-      setup:
-        filter: "ansible_date_time"
-      delegate_to: localhost
-
     - name: Save Backup to File
       copy:
         content: "{{ backup_data.meta.raw }}"
-        dest: "/home/ubuntu/ansible_cisco_lab//backups/{{ inventory_hostname }}_{{ ansible_date_time.date }}.conf"
+        dest: "{{ ansible_env.HOME }}/ansible_cisco_lab/backups/{{ inventory_hostname }}_{{ ansible_date_time.date }}.conf"
       delegate_to: localhost
-
 
