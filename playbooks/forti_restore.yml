@@ -1,0 +1,18 @@
+---
+- name: Rollback FortiGate Configuration
+  hosts: fortigates
+  gather_facts: false
+  collections:
+    - fortinet.fortios
+
+  tasks:
+    - name: Upload and Restore Configuration
+      fortios_monitor_fact:
+        access_token: "{{ vault_forti_token }}"
+        vdom: "root"
+        selector: "system_config_restore"
+        params:
+          scope: "global"
+          source: "local"
+          # 'restore_file' is passed from the Jenkinsfile failure block
+          filename: "{{ restore_file }}"
