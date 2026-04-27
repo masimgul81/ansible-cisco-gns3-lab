@@ -13,14 +13,14 @@
           WARNING: Authorized Access Only for G3nIu5
           Managed by Ansible & Jenkins with GitHub
           Automation with Webhook + ngrock & GNS3 + Cisco
-          Tested by 19th Feb 2026 ver2
+          Tested by 19th Feb 2026 ver2 + added IOU_R
           ---------------------------------------
         state: present
 
     - name: Configure Loopback 100 
       cisco.ios.ios_config:
         lines:
-          - description Configured by Ansible
+          - description Configured by Ansible ---
           - ip address 192.168.100.1 255.255.255.255
           - no shutdown
         parents: interface Loopback100
@@ -28,7 +28,7 @@
     - name: Configure Loopback 200 
       cisco.ios.ios_config:
         lines:
-          - description Configured by Ansible + gitpull
+          - description Configured by Ansible + gitpull + NGrok
           - ip address 192.168.200.1 255.255.255.255
           - no shutdown
         parents: interface Loopback200
