@@ -19,11 +19,11 @@ pipeline {
             when {
                 anyOf {
                     // Triggers if any router playbook is modified
-                    changeset "playbooks/router_.*"
+                    changeset "**/playbooks/router_.*"
                     // Triggers if the main Cisco inventory is modified
-                    changeset "inventory/hosts.yml"
+                    changeset "**/inventory/hosts.yml"
                     // Triggers if this Jenkinsfile itself is modified
-                    changeset "Jenkinsfile"
+                    changeset "**/Jenkinsfile"
                 }
             }
             stages {
