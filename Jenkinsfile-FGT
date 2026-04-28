@@ -4,7 +4,6 @@ pipeline {
     environment {
         ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
         ANSIBLE_HOST_KEY_CHECKING = 'False'
-        // We will define the filename dynamically in the stage
     }
 
     stages {
@@ -12,54 +11,54 @@ pipeline {
             steps { checkout scm }
         }
 
-        stage('Backup FortiGate State') {
-            steps {
-                script {
-                    // Generate timestamp and set it as an environment variable
-                    def timeStamp = sh(returnStdout: true, script: 'date +%Y%m%d%H%M%S').trim()
-                    env.BACKUP_NAME = "fgt_rollback_point_${timeStamp}.conf"
-                }
-
-                echo "Creating FGT rollback point: ${env.BACKUP_NAME}"
-
-                withCredentials([
-                    file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_PASS_FILE')
-                ]) {
-                    // Use ${env.BACKUP_NAME} and specify the workspace path explicitly
-                    sh """
-                        ansible-playbook -i inventory/hosts_forti.ini \
-                        playbooks/forti_config.yml \
-                        --tags backup \
-                        -e "custom_backup_filename=${env.BACKUP_NAME}" \
-                        -e "workspace_backup_path=${WORKSPACE}/backups" \
-                        --vault-password-file $VAULT_PASS_FILE
-                    """
+        // --- NEW FILTERING LOGIC ---
+        stage('Deploy FortiGate') {
+            when {
+                anyOf {
+                    changeset "playbooks/forti_.*"
+                    changeset "inventory/hosts_forti.ini"
+                    changeset "Jenkinsfile-FGT"
                 }
             }
-        }
+            stages {
+                stage('Backup FortiGate State') {
+                    steps {
+                        script {
+                            def timeStamp = sh(returnStdout: true, script: 'date +%Y%m%d%H%M%S').trim()
+                            env.BACKUP_NAME = "fgt_rollback_point_${timeStamp}.conf"
+                        }
+                        echo "Creating FGT rollback point: ${env.BACKUP_NAME}"
+                        withCredentials([file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_PASS_FILE')]) {
+                            sh """
+                                ansible-playbook -i inventory/hosts_forti.ini \
+                                playbooks/forti_config.yml \
+                                --tags backup \
+                                -e "custom_backup_filename=${env.BACKUP_NAME}" \
+                                -e "workspace_backup_path=${WORKSPACE}/backups" \
+                                --vault-password-file $VAULT_PASS_FILE
+                            """
+                        }
+                    }
+                }
 
-        stage('Deploy FGT Configuration') {
-            steps {
-                withCredentials([
-                    file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_PASS_FILE')
-                ]) {
-                    sh '''
-                        ansible-playbook -i inventory/hosts_forti.ini \
-                        playbooks/forti_config.yml \
-                        --tags config \
-                        --vault-password-file $VAULT_PASS_FILE
-                    '''
+                stage('Deploy FGT Configuration') {
+                    steps {
+                        withCredentials([file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_PASS_FILE')]) {
+                            sh '''
+                                ansible-playbook -i inventory/hosts_forti.ini \
+                                playbooks/forti_config.yml \
+                                --tags config \
+                                --vault-password-file $VAULT_PASS_FILE
+                            '''
+                        }
+                    }
                 }
             }
         }
     }
 
     post {
-        failure {
-             echo "Deployment Failed! Artifacts will be archived if available."
-        }
         always {
-            // Jenkins will look for the backups folder we created in the workspace
             archiveArtifacts artifacts: 'backups/*.conf', allowEmptyArchive: true
             cleanWs()
         }
