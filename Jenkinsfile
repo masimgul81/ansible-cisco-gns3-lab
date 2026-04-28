@@ -9,11 +9,7 @@ pipeline {
     }
 
     stages {
-        stage('Checkout SCM') {
-            steps {
-                checkout scm
-            }
-        }
+        
 
         stage('Cisco Operations') {
             when {

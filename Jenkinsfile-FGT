@@ -7,9 +7,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout SCM') {
-            steps { checkout scm }
-        }
 
         // --- NEW FILTERING LOGIC ---
         stage('Deploy FortiGate') {
