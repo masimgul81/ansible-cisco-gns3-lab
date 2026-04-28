@@ -11,7 +11,7 @@
         path: "{{ ansible_env.HOME }}/ansible_cisco_lab/backups"
         state: directory
       delegate_to: localhost
-      tags: [always] # Always runs a
+      tags: [always] # Always runs all
 
     - name: Backup FortiGate Config
       fortios_monitor_fact:
