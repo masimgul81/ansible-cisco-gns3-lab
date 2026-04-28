@@ -12,9 +12,9 @@ pipeline {
         stage('Deploy FortiGate') {
             when {
                 anyOf {
-                    changeset "**/playbooks/forti_.*"
-                    changeset "**/inventory/hosts_forti.ini"
-                    changeset "**/Jenkinsfile-FGT"
+                    changeset "playbooks/forti_*"
+                    changeset "inventory/hosts_forti.ini"
+                    changeset "Jenkinsfile-FGT"
                 }
             }
             stages {
