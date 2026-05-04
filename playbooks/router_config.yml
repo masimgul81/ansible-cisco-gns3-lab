@@ -21,7 +21,7 @@
       cisco.ios.ios_config:
         lines:
           - description Configured by Ansible ---
-          - ip address 192.168.100.1 255.255.255.255
+          - ip address 192.168.101.1 255.255.255.255
           - no shutdown
         parents: interface Loopback100
         
