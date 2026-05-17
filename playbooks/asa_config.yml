@@ -1,0 +1,21 @@
+---
+- name: Manage Cisco ASA using Ansible Vault
+  hosts: lab_asa
+  gather_facts: no
+#  become: yes
+#  become_method: enable
+  
+  # Tell Ansible to load your encrypted variables file
+#  vars_files:
+#    - vars/vault.yml
+
+  tasks:
+    - name: Get ASA Interface Configurations
+      cisco.asa.asa_command:
+        commands:
+          - show run interface
+      register: interface_output
+
+    - name: Display Interface Configuration
+      debug:
+        msg: "{{ interface_output.stdout_lines }}"

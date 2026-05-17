@@ -1,0 +1,74 @@
+---
+- name: Gather FortiGate configuration
+  hosts: fortigates
+  gather_facts: no
+  connection: httpapi
+  collections:
+    - fortinet.fortios
+  vars:
+    ansible_httpapi_use_ssl: yes
+    ansible_httpapi_validate_certs: no
+    ansible_httpapi_port: 443
+
+  tasks:
+    - name: Fetch interfaces configuration
+      fortios_configuration_fact:
+        vdom: "root"
+        access_token: "{{ vault_forti_token }}"
+        selector: "system_interface"
+      register: interface_data
+
+    - name: Fetch firewall policies
+      fortios_configuration_fact:
+        vdom: "root"
+        access_token: "{{ vault_forti_token }}"
+        selector: "firewall_policy"
+      register: policy_data
+
+    - name: Fetch Central NAT rules
+      fortios_configuration_fact:
+        vdom: "root"
+        access_token: "{{ vault_forti_token }}"
+        selector: "firewall_central_snat_map"
+      register: nat_data
+      ignore_errors: yes  # Prevents crash if Central NAT is disabled
+
+    - name: Fetch UTM AV profiles
+      fortios_configuration_fact:
+        vdom: "root"
+        access_token: "{{ vault_forti_token }}"
+        selector: "antivirus_profile"
+      register: utm_data
+      ignore_errors: yes
+
+    - name: Fetch Static Routes
+      fortios_configuration_fact:
+        vdom: "root"
+        access_token: "{{ vault_forti_token }}"
+        selector: "router_static"
+      register: static_route_data
+
+    - name: Save configuration to YAML
+      delegate_to: localhost
+      copy:
+        dest: "firewall_full_config.yaml"
+        content: |
+          # FortiGate Lab Backup - {{ ansible_date_time.date | default('N/A') }}
+          interfaces: 
+          {{ interface_data.meta.results | default([]) | to_nice_yaml }}
+          
+          policies: 
+          {{ policy_data.meta.results | default([]) | to_nice_yaml }}
+          
+          nats: 
+          {{ (nat_data.meta.results if nat_data is not failed else []) | to_nice_yaml }}
+          
+          utm_profiles: 
+          {{ (utm_data.meta.results if utm_data is not failed else []) | to_nice_yaml }}
+          
+          static_routes:
+          {{ static_route_data.meta.results | default([]) | to_nice_yaml }}
+
+    - name: Debug file location
+      debug:
+        msg: "Configuration saved to firewall_full_config.yaml"
